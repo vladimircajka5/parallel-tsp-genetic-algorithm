@@ -141,6 +141,7 @@ int main(int argc, char** argv) {
         GeneticAlgorithm algorithm(instance, options.config);
 
         auto start = std::chrono::high_resolution_clock::now();
+        std::cout << "Finding the best route...\n" << std::endl;
         GAResult result = options.useParallel ? algorithm.runParallel() : algorithm.runSerial();
         auto end = std::chrono::high_resolution_clock::now();
 

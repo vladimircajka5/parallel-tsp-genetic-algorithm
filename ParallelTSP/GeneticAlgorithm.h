@@ -42,7 +42,28 @@ private:
     GAConfig config;
     int n;
 
-    GAResult run(bool useParallelEvaluation);
+    GAResult run(bool useParallel);
+
+    std::vector<Individual> createNextPopulationSerial(
+        const std::vector<Individual>& population,
+        int eliteCount,
+        int generation,
+        const std::vector<double>& rankWeights
+    ) const;
+
+    std::vector<Individual> createNextPopulationParallel(
+        const std::vector<Individual>& population,
+        int eliteCount,
+        int generation,
+        const std::vector<double>& rankWeights
+    ) const;
+
+    Individual createChild(
+        const std::vector<Individual>& population,
+        int generation,
+        int childIndex,
+        std::discrete_distribution<int>& rankDistribution
+    ) const;
 
     std::vector<Individual> createInitialPopulation(std::mt19937& rng) const;
 
@@ -54,12 +75,6 @@ private:
     int pickParentByRank(
         std::mt19937& rng,
         std::discrete_distribution<int>& rankDistribution
-    ) const;
-
-    std::pair<std::vector<int>, std::vector<int>> scxCrossover(
-        const std::vector<int>& parent1,
-        const std::vector<int>& parent2,
-        std::mt19937& rng
     ) const;
 
     std::vector<int> scxChild(
