@@ -6,7 +6,7 @@
     <LocalDebuggerCommandArgumentsHistory>--help|--data data_tsp.txt --pop 500 --gen 100 --patience 50 --seed 42|./program --data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>--pop 10000 --gen 500 --patience 500 --seed 42</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42 --parallel| --pop 10000 --gen 500 --patience 500 --seed 42|--pop 500 --gen 100 --seed 42|--pop 10000 --gen 500 --patience 500 --seed 42 --parallel|--pop 10000 --gen 500 --patience 500 --seed 42|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>--pop 500 --gen 100 --seed 42 --benchmark</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>--pop 10000 --gen 500 --patience 500 --seed 42|--pop 10000 --gen 500 --patience 500 --seed 42 --parallel|--pop 500 --gen 100 --seed 42|--pop 500 --gen 100 --seed 42 --parallel|--pop 500 --gen 100 --seed 42 --benchmark|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>
