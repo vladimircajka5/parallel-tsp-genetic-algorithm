@@ -10,6 +10,7 @@
 # Precompiled Headers
 *.gch
 *.pch
+*.ipch
 
 # Linker files
 *.ilk
@@ -67,3 +68,17 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+*.vsidx
+*.suo
+*.db
+*.json
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.VC.*
+*.exe.*
+*.tlog
+*.idb
+*.csv
+*best_route.txt
