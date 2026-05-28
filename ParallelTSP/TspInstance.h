@@ -7,7 +7,7 @@
 
 class TspInstance {
 public:
-    explicit TspInstance(const std::string& filePath);
+    explicit TspInstance(const std::string& filePath, bool useParallel = false);
 
     int cityCount() const;
     const std::vector<City>& getCities() const;
@@ -19,4 +19,5 @@ private:
 
     void loadCities(const std::string& filePath);
     void buildDistanceMatrix();
+    void buildDistanceMatrixParallel();
 };

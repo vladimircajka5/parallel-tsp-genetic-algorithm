@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
     try {
         CommandLineOptions options = parseArguments(argc, argv);
 
-        TspInstance instance(options.dataPath);
+        TspInstance instance(options.dataPath, options.useParallel);
         GeneticAlgorithm algorithm(instance, options.config);
 
         auto start = std::chrono::high_resolution_clock::now();
