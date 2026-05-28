@@ -81,3 +81,5 @@ Testing/
 *best_route.txt
 *.iobj
 *.ipdb
+*.db-wal
+*.db-shm
