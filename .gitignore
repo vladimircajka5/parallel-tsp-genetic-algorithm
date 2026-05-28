@@ -73,9 +73,6 @@ Testing/
 *.suo
 *.db
 *.json
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
 *.VC.*
 *.exe.*
 *.tlog

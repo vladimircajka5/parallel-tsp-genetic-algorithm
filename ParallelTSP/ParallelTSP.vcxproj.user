@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>--help|--data data_tsp.txt --pop 500 --gen 100 --patience 50 --seed 42|./program --data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|</LocalDebuggerCommandArgumentsHistory>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>--pop 10000 --gen 500 --patience 500 --seed 42</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42 --parallel| --pop 10000 --gen 500 --patience 500 --seed 42|--pop 500 --gen 100 --seed 42|--pop 10000 --gen 500 --patience 500 --seed 42 --parallel|--pop 10000 --gen 500 --patience 500 --seed 42|</LocalDebuggerCommandArgumentsHistory>
+  </PropertyGroup>
+</Project>
