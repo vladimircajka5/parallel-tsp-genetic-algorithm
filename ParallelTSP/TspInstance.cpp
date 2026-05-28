@@ -5,9 +5,18 @@
 #include <sstream>
 #include <stdexcept>
 
-TspInstance::TspInstance(const std::string& filePath) {
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+
+TspInstance::TspInstance(const std::string& filePath, bool useParallel) {
     loadCities(filePath);
-    buildDistanceMatrix();
+
+    if (useParallel) {
+        buildDistanceMatrixParallel();
+    }
+    else {
+        buildDistanceMatrix();
+    }
 }
 
 int TspInstance::cityCount() const {
@@ -60,4 +69,22 @@ void TspInstance::buildDistanceMatrix() {
             distances[i * n + j] = std::sqrt(dx * dx + dy * dy);
         }
     }
+}
+
+void TspInstance::buildDistanceMatrixParallel() {
+    int n = cityCount();
+    distances.assign(n * n, 0.0);
+
+    tbb::parallel_for(
+        tbb::blocked_range<int>(0, n),
+        [&](const tbb::blocked_range<int>& range) {
+            for (int i = range.begin(); i != range.end(); ++i) {
+                for (int j = 0; j < n; ++j) {
+                    double dx = cities[i].x - cities[j].x;
+                    double dy = cities[i].y - cities[j].y;
+                    distances[i * n + j] = std::sqrt(dx * dx + dy * dy);
+                }
+            }
+        }
+    );
 }
