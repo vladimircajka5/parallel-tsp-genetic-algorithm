@@ -6,9 +6,12 @@
 #include <stdexcept>
 #include <random>
 #include <utility>
+#include <functional>
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_sort.h>
+#include <tbb/parallel_reduce.h>
 
 namespace {
     bool shorterIndividual(const Individual& a, const Individual& b) {
@@ -59,7 +62,12 @@ GAResult GeneticAlgorithm::run(bool useParallel) {
         evaluatePopulation(population);
     }
 
-    std::sort(population.begin(), population.end(), shorterIndividual);
+    if (useParallel) {
+        sortPopulationParallel(population);
+    }
+    else {
+        sortPopulation(population);
+    }
 
     Individual bestOverall = population.front();
     std::vector<std::tuple<int, double, double>> history;
@@ -78,19 +86,22 @@ GAResult GeneticAlgorithm::run(bool useParallel) {
             : createNextPopulationSerial(population, eliteCount, generation, rankWeights);
 
         population = std::move(nextPopulation);
+
         if (useParallel) {
             evaluatePopulationParallel(population);
         }
         else {
             evaluatePopulation(population);
         }
-        std::sort(population.begin(), population.end(), shorterIndividual);
 
-        double mean = 0.0;
-        for (const Individual& individual : population) {
-            mean += individual.length;
+        if (useParallel) {
+            sortPopulationParallel(population);
         }
-        mean /= static_cast<double>(population.size());
+        else {
+            sortPopulation(population);
+        }
+
+        double mean = useParallel ? calculateMeanLengthParallel(population) : calculateMeanLength(population);
 
         const Individual& generationBest = population.front();
         history.emplace_back(generation, generationBest.length, mean);
@@ -244,6 +255,40 @@ void GeneticAlgorithm::evaluatePopulationParallel(std::vector<Individual>& popul
             }
         }
     );
+}
+
+void GeneticAlgorithm::sortPopulation(std::vector<Individual>& population) const {
+    std::sort(population.begin(), population.end(), shorterIndividual);
+}
+
+void GeneticAlgorithm::sortPopulationParallel(std::vector<Individual>& population) const {
+    tbb::parallel_sort(population.begin(), population.end(), shorterIndividual);
+}
+
+double GeneticAlgorithm::calculateMeanLength(const std::vector<Individual>& population) const {
+    double sum = 0.0;
+
+    for (const Individual& individual : population) {
+        sum += individual.length;
+    }
+
+    return sum / static_cast<double>(population.size());
+}
+
+double GeneticAlgorithm::calculateMeanLengthParallel(const std::vector<Individual>& population) const {
+    double sum = tbb::parallel_reduce(
+        tbb::blocked_range<size_t>(0, population.size()),
+        0.0,
+        [&](const tbb::blocked_range<size_t>& range, double localSum) {
+            for (size_t i = range.begin(); i != range.end(); ++i) {
+                localSum += population[i].length;
+            }
+            return localSum;
+        },
+        std::plus<double>()
+    );
+
+    return sum / static_cast<double>(population.size());
 }
 
 double GeneticAlgorithm::calculateRouteLength(const std::vector<int>& route) const {

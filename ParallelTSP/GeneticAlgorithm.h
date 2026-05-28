@@ -70,6 +70,12 @@ private:
     void evaluatePopulation(std::vector<Individual>& population) const;
     void evaluatePopulationParallel(std::vector<Individual>& population) const;
 
+    void sortPopulation(std::vector<Individual>& population) const;
+    void sortPopulationParallel(std::vector<Individual>& population) const;
+
+    double calculateMeanLength(const std::vector<Individual>& population) const;
+    double calculateMeanLengthParallel(const std::vector<Individual>& population) const;
+
     double calculateRouteLength(const std::vector<int>& route) const;
 
     int pickParentByRank(
