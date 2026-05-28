@@ -4,6 +4,8 @@
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
+#include <random>
+#include <utility>
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -45,11 +47,18 @@ GAResult GeneticAlgorithm::runParallel() {
     return run(true);
 }
 
-GAResult GeneticAlgorithm::run(bool useParallelEvaluation) {
+GAResult GeneticAlgorithm::run(bool useParallel) {
     std::mt19937 rng(config.seed);
 
     std::vector<Individual> population = createInitialPopulation(rng);
-    evaluatePopulation(population);
+
+    if (useParallel) {
+        evaluatePopulationParallel(population);
+    }
+    else {
+        evaluatePopulation(population);
+    }
+
     std::sort(population.begin(), population.end(), shorterIndividual);
 
     Individual bestOverall = population.front();
@@ -62,49 +71,19 @@ GAResult GeneticAlgorithm::run(bool useParallelEvaluation) {
     int usedGenerations = config.generations;
 
     for (int generation = 1; generation <= config.generations; ++generation) {
-        std::vector<Individual> nextPopulation(config.populationSize);
-
-        for (int i = 0; i < eliteCount; ++i) {
-            nextPopulation[i] = population[i];
-        }
-
         std::vector<double> rankWeights = buildRankWeights(static_cast<int>(population.size()));
-        std::discrete_distribution<int> rankDistribution(rankWeights.begin(), rankWeights.end());
 
-        std::uniform_real_distribution<double> probability(0.0, 1.0);
-
-        int fillIndex = eliteCount;
-        while (fillIndex < config.populationSize) {
-            const Individual& parent1 = population[pickParentByRank(rng, rankDistribution)];
-            const Individual& parent2 = population[pickParentByRank(rng, rankDistribution)];
-
-            std::vector<int> child1;
-            std::vector<int> child2;
-
-            if (probability(rng) < config.crossoverProbability) {
-                auto children = scxCrossover(parent1.route, parent2.route, rng);
-                child1 = std::move(children.first);
-                child2 = std::move(children.second);
-            } else {
-                child1 = parent1.route;
-                child2 = parent2.route;
-            }
-
-            if (probability(rng) < config.mutationProbability) {
-                inversionMutation(child1, rng);
-            }
-            if (probability(rng) < config.mutationProbability) {
-                inversionMutation(child2, rng);
-            }
-
-            nextPopulation[fillIndex++].route = std::move(child1);
-            if (fillIndex < config.populationSize) {
-                nextPopulation[fillIndex++].route = std::move(child2);
-            }
-        }
+        std::vector<Individual> nextPopulation = useParallel
+            ? createNextPopulationParallel(population, eliteCount, generation, rankWeights)
+            : createNextPopulationSerial(population, eliteCount, generation, rankWeights);
 
         population = std::move(nextPopulation);
-        evaluatePopulation(population);
+        if (useParallel) {
+            evaluatePopulationParallel(population);
+        }
+        else {
+            evaluatePopulation(population);
+        }
         std::sort(population.begin(), population.end(), shorterIndividual);
 
         double mean = 0.0;
@@ -135,6 +114,107 @@ GAResult GeneticAlgorithm::run(bool useParallelEvaluation) {
         history,
         usedGenerations
     };
+}
+
+std::vector<Individual> GeneticAlgorithm::createNextPopulationSerial(
+    const std::vector<Individual>& population,
+    int eliteCount,
+    int generation,
+    const std::vector<double>& rankWeights
+) const {
+    std::vector<Individual> nextPopulation(config.populationSize);
+
+    for (int i = 0; i < eliteCount; ++i) {
+        nextPopulation[i] = population[i];
+    }
+
+    std::discrete_distribution<int> rankDistribution(
+        rankWeights.begin(),
+        rankWeights.end()
+    );
+
+    for (int i = eliteCount; i < config.populationSize; ++i) {
+        nextPopulation[i] = createChild(
+            population,
+            generation,
+            i,
+            rankDistribution
+        );
+    }
+
+    return nextPopulation;
+}
+
+std::vector<Individual> GeneticAlgorithm::createNextPopulationParallel(
+    const std::vector<Individual>& population,
+    int eliteCount,
+    int generation,
+    const std::vector<double>& rankWeights
+) const {
+    std::vector<Individual> nextPopulation(config.populationSize);
+
+    for (int i = 0; i < eliteCount; ++i) {
+        nextPopulation[i] = population[i];
+    }
+
+    tbb::parallel_for(
+        tbb::blocked_range<int>(eliteCount, config.populationSize),
+        [&](const tbb::blocked_range<int>& range) {
+            std::discrete_distribution<int> localRankDistribution(
+                rankWeights.begin(),
+                rankWeights.end()
+            );
+
+            for (int i = range.begin(); i != range.end(); ++i) {
+                nextPopulation[i] = createChild(
+                    population,
+                    generation,
+                    i,
+                    localRankDistribution
+                );
+            }
+        }
+    );
+
+    return nextPopulation;
+}
+
+Individual GeneticAlgorithm::createChild(
+    const std::vector<Individual>& population,
+    int generation,
+    int childIndex,
+    std::discrete_distribution<int>& rankDistribution
+) const {
+    std::seed_seq seedSequence{
+        config.seed,
+        static_cast<unsigned int>(generation),
+        static_cast<unsigned int>(childIndex)
+    };
+
+    std::mt19937 rng(seedSequence);
+    std::uniform_real_distribution<double> probability(0.0, 1.0);
+
+    const Individual& parent1 = population[pickParentByRank(rng, rankDistribution)];
+    const Individual& parent2 = population[pickParentByRank(rng, rankDistribution)];
+
+    std::vector<int> childRoute;
+
+    if (probability(rng) < config.crossoverProbability) {
+        bool useNext = (childIndex % 2 == 0);
+        childRoute = scxChild(useNext, parent1.route, parent2.route, rng);
+    }
+    else {
+        childRoute = parent1.route;
+    }
+
+    if (probability(rng) < config.mutationProbability) {
+        inversionMutation(childRoute, rng);
+    }
+
+    Individual child;
+    child.route = std::move(childRoute);
+
+    return child;
 }
 
 std::vector<Individual> GeneticAlgorithm::createInitialPopulation(std::mt19937& rng) const {
@@ -180,14 +260,6 @@ int GeneticAlgorithm::pickParentByRank(
     std::discrete_distribution<int>& rankDistribution
 ) const {
     return rankDistribution(rng);
-}
-
-std::pair<std::vector<int>, std::vector<int>> GeneticAlgorithm::scxCrossover(
-    const std::vector<int>& parent1,
-    const std::vector<int>& parent2,
-    std::mt19937& rng
-) const {
-    return {scxChild(true, parent1, parent2, rng), scxChild(false, parent1, parent2, rng)};
 }
 
 std::vector<int> GeneticAlgorithm::scxChild(
