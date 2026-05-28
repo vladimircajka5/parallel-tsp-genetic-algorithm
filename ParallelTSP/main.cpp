@@ -15,6 +15,7 @@ namespace fs = std::filesystem;
 struct CommandLineOptions {
     std::string dataPath = "data_tsp.txt";
     int startId = 1;
+    bool useParallel = false;
     GAConfig config;
 };
 
@@ -31,7 +32,8 @@ void printUsage(const char* programName) {
         << "  --patience <int>       Early stop patience (default: 50)\n"
         << "  --seed <int>           Random seed (default: 42)\n"
         << "  --start_id <int>       Rotate output route to this city ID (default: 1)\n"
-        << "  --help                 Show this help\n";
+        << "  --help                 Show this help\n"
+        << "  --parallel            Run TBB parallel version\n";
 }
 
 CommandLineOptions parseArguments(int argc, char** argv) {
@@ -68,6 +70,8 @@ CommandLineOptions parseArguments(int argc, char** argv) {
             options.config.seed = static_cast<unsigned int>(std::stoul(requireValue(arg)));
         } else if (arg == "--start_id") {
             options.startId = std::stoi(requireValue(arg));
+        } else if (arg == "--parallel") {
+            options.useParallel = true;
         } else {
             throw std::invalid_argument("Unknown argument: " + arg);
         }
@@ -137,7 +141,7 @@ int main(int argc, char** argv) {
         GeneticAlgorithm algorithm(instance, options.config);
 
         auto start = std::chrono::high_resolution_clock::now();
-        GAResult result = algorithm.runSerial();
+        GAResult result = options.useParallel ? algorithm.runParallel() : algorithm.runSerial();
         auto end = std::chrono::high_resolution_clock::now();
 
         double elapsedSeconds = std::chrono::duration<double>(end - start).count();
@@ -145,7 +149,7 @@ int main(int argc, char** argv) {
         std::vector<int> routeIds = convertRouteToCityIds(result.bestRoute, instance);
         rotateRouteToStartId(routeIds, options.startId);
 
-        std::cout << "=== GA TSP RESULT - SERIAL C++ ===\n";
+        std::cout << "=== GA TSP RESULT - "<< (options.useParallel ? "PARALLEL" : "SERIAL") << " ===\n";
         std::cout << "Cities: " << instance.cityCount() << '\n';
         std::cout << "Used generations: " << result.usedGenerations << '\n';
         std::cout << std::fixed << std::setprecision(3);

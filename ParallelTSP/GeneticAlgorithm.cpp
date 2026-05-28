@@ -5,6 +5,9 @@
 #include <numeric>
 #include <stdexcept>
 
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+
 namespace {
     bool shorterIndividual(const Individual& a, const Individual& b) {
         return a.length < b.length;
@@ -35,6 +38,14 @@ GeneticAlgorithm::GeneticAlgorithm(const TspInstance& instance, GAConfig config)
 }
 
 GAResult GeneticAlgorithm::runSerial() {
+    return run(false);
+}
+
+GAResult GeneticAlgorithm::runParallel() {
+    return run(true);
+}
+
+GAResult GeneticAlgorithm::run(bool useParallelEvaluation) {
     std::mt19937 rng(config.seed);
 
     std::vector<Individual> population = createInitialPopulation(rng);
@@ -142,6 +153,17 @@ void GeneticAlgorithm::evaluatePopulation(std::vector<Individual>& population) c
     for (Individual& individual : population) {
         individual.length = calculateRouteLength(individual.route);
     }
+}
+
+void GeneticAlgorithm::evaluatePopulationParallel(std::vector<Individual>& population) const {
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, population.size()),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t i = range.begin(); i != range.end(); ++i) {
+                population[i].length = calculateRouteLength(population[i].route);
+            }
+        }
+    );
 }
 
 double GeneticAlgorithm::calculateRouteLength(const std::vector<int>& route) const {
