@@ -35,15 +35,20 @@ public:
     GeneticAlgorithm(const TspInstance& instance, GAConfig config);
 
     GAResult runSerial();
+    GAResult runParallel();
 
 private:
     const TspInstance& instance;
     GAConfig config;
     int n;
 
+    GAResult run(bool useParallelEvaluation);
+
     std::vector<Individual> createInitialPopulation(std::mt19937& rng) const;
 
     void evaluatePopulation(std::vector<Individual>& population) const;
+    void evaluatePopulationParallel(std::vector<Individual>& population) const;
+
     double calculateRouteLength(const std::vector<int>& route) const;
 
     int pickParentByRank(
