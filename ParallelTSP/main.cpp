@@ -6,10 +6,21 @@
 
 #include <exception>
 #include <iostream>
+#include <memory>
+#include <tbb/global_control.h>
 
 int main(int argc, char** argv) {
     try {
         CommandLineOptions options = parseArguments(argc, argv);
+
+        std::unique_ptr<tbb::global_control> threadControl;
+
+        if (options.threadCount > 0) {
+            threadControl = std::make_unique<tbb::global_control>(
+                tbb::global_control::max_allowed_parallelism,
+                options.threadCount
+            );
+        }
 
         TspInstance instance(options.dataPath, options.useParallel || options.benchmark);
         GeneticAlgorithm algorithm(instance, options.config);

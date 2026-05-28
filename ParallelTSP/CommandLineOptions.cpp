@@ -19,6 +19,7 @@ void printUsage(const char* programName) {
         << "  --start_id <int>       Rotate output route to this city ID (default: 1)\n"
         << "  --parallel             Run TBB parallel version\n"
         << "  --benchmark            Run both serial and parallel versions and save comparison\n"
+        << "  --threads <int>        Maximum number of TBB threads (default: automatic)\n"
         << "  --help                 Show this help\n";
 }
 
@@ -71,6 +72,9 @@ CommandLineOptions parseArguments(int argc, char** argv) {
         }
         else if (arg == "--benchmark") {
             options.benchmark = true;
+        }
+        else if (arg == "--threads") {
+             options.threadCount = std::stoi(requireValue(arg));
         }
         else {
             throw std::invalid_argument("Unknown argument: " + arg);

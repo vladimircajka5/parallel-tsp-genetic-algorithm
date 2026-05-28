@@ -133,12 +133,13 @@ void saveBenchmarkResults(
 
     double speedup = serial.elapsedSeconds / parallel.elapsedSeconds;
 
-    output << "population,generations,patience,seed,mode,used_generations,best_length,elapsed_seconds,speedup\n";
+    output << "population,generations,patience,seed,threads,mode,used_generations,best_length,elapsed_seconds,speedup\n";
 
     output << options.config.populationSize << ','
         << options.config.generations << ','
         << options.config.patience << ','
         << options.config.seed << ','
+        << options.threadCount << ','
         << "serial" << ','
         << serial.result.usedGenerations << ','
         << std::fixed << std::setprecision(6)
@@ -150,6 +151,7 @@ void saveBenchmarkResults(
         << options.config.generations << ','
         << options.config.patience << ','
         << options.config.seed << ','
+        << options.threadCount << ','
         << "parallel" << ','
         << parallel.result.usedGenerations << ','
         << std::fixed << std::setprecision(6)
