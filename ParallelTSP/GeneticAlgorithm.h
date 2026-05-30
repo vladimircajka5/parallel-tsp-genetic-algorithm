@@ -6,6 +6,7 @@
 #include <random>
 #include <tuple>
 #include <utility>
+#include <string>
 #include <vector>
 
 struct GAConfig {
@@ -96,4 +97,8 @@ private:
     void inversionMutation(std::vector<int>& route, std::mt19937& rng) const;
 
     std::vector<double> buildRankWeights(int populationSize) const;
+
+    bool isValidRoute(const std::vector<int>& route) const;
+
+    void validateRoute(const std::vector<int>& route, const std::string& context) const;
 };

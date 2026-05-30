@@ -223,6 +223,10 @@ Individual GeneticAlgorithm::createChild(
     Individual child;
     child.route = std::move(childRoute);
 
+#ifndef NDEBUG
+    validateRoute(child.route, "createChild");
+#endif
+
     return child;
 }
 
@@ -241,6 +245,10 @@ Individual GeneticAlgorithm::createInitialIndividual(int individualIndex) const 
 
     Individual individual;
     individual.route = std::move(route);
+
+#ifndef NDEBUG
+    validateRoute(individual.route, "createInitialIndividual");
+#endif
 
     return individual;
 }
@@ -400,4 +408,35 @@ std::vector<double> GeneticAlgorithm::buildRankWeights(int populationSize) const
         weights[i] = static_cast<double>(populationSize - i);
     }
     return weights;
+}
+
+bool GeneticAlgorithm::isValidRoute(const std::vector<int>& route) const {
+    if (static_cast<int>(route.size()) != n) {
+        return false;
+    }
+
+    std::vector<bool> seen(n, false);
+
+    for (int city : route) {
+        if (city < 0 || city >= n) {
+            return false;
+        }
+
+        if (seen[city]) {
+            return false;
+        }
+
+        seen[city] = true;
+    }
+
+    return true;
+}
+
+void GeneticAlgorithm::validateRoute(
+    const std::vector<int>& route,
+    const std::string& context
+) const {
+    if (!isValidRoute(route)) {
+        throw std::runtime_error("Invalid route generated in: " + context);
+    }
 }

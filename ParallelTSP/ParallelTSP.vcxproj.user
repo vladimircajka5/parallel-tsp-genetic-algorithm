@@ -2,11 +2,11 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>--help|--data data_tsp.txt --pop 500 --gen 100 --patience 50 --seed 42|./program --data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>--pop 500 --gen 100 --seed 42 --parallel</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>--data data_tsp.txt --pop 500 --gen 100 --patience 50 --seed 42|./program --data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|--data data_tsp.txt --pop 10000 --gen 500 --patience 500 --seed 42|--pop 500 --gen 100 --seed 42|--pop 500 --gen 100 --seed 42 --parallel|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>--pop 500 --gen 100 --seed 42 --benchmark</LocalDebuggerCommandArguments>
-    <LocalDebuggerCommandArgumentsHistory>--pop 10000 --gen 500 --patience 500 --seed 42|--pop 10000 --gen 500 --patience 500 --seed 42 --parallel|--pop 500 --gen 100 --seed 42|--pop 500 --gen 100 --seed 42 --parallel|--pop 500 --gen 100 --seed 42 --benchmark|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>--benchmark --pop 5000 --gen 200 --patience 200 --seed 42 --threads 8</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>--benchmark --pop 5000 --gen 200 --patience 200 --seed 42 --threads 1|--benchmark --pop 5000 --gen 200 --patience 200 --seed 42 --threads 2|--benchmark --pop 5000 --gen 200 --patience 200 --seed 42 --threads 4|--benchmark --pop 500 --gen 100 --seed 42 --threads 4|--benchmark --pop 5000 --gen 200 --patience 200 --seed 42 --threads 8|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>
