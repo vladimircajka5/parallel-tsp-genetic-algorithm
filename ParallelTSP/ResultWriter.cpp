@@ -129,33 +129,39 @@ void saveBenchmarkResults(
 ) {
     fs::create_directories("results");
 
-    std::ofstream output("results/benchmark.csv");
+    const std::string filePath = "results/benchmark.csv";
+    bool shouldWriteHeader = !fs::exists(filePath) || fs::file_size(filePath) == 0;
+
+    std::ofstream output(filePath, std::ios::app);
 
     double speedup = serial.elapsedSeconds / parallel.elapsedSeconds;
 
-    output << "population,generations,patience,seed,threads,mode,used_generations,best_length,elapsed_seconds,speedup\n";
+    double efficiency = 0.0;
+    if (options.threadCount > 0) {
+        efficiency = speedup / static_cast<double>(options.threadCount);
+    }
+
+    if (shouldWriteHeader) {
+        output
+            << "population,generations,patience,seed,threads,"
+            << "serial_used_generations,parallel_used_generations,"
+            << "serial_best_length,parallel_best_length,"
+            << "serial_elapsed_seconds,parallel_elapsed_seconds,"
+            << "speedup,efficiency\n";
+    }
 
     output << options.config.populationSize << ','
         << options.config.generations << ','
         << options.config.patience << ','
         << options.config.seed << ','
         << options.threadCount << ','
-        << "serial" << ','
         << serial.result.usedGenerations << ','
-        << std::fixed << std::setprecision(6)
-        << serial.result.bestLength << ','
-        << serial.elapsedSeconds << ','
-        << "1.000000" << '\n';
-
-    output << options.config.populationSize << ','
-        << options.config.generations << ','
-        << options.config.patience << ','
-        << options.config.seed << ','
-        << options.threadCount << ','
-        << "parallel" << ','
         << parallel.result.usedGenerations << ','
         << std::fixed << std::setprecision(6)
+        << serial.result.bestLength << ','
         << parallel.result.bestLength << ','
+        << serial.elapsedSeconds << ','
         << parallel.elapsedSeconds << ','
-        << speedup << '\n';
+        << speedup << ','
+        << efficiency << '\n';
 }
