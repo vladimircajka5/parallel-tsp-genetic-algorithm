@@ -40,7 +40,9 @@ int main(int argc, char** argv) {
             return 0;
         }
 
-        std::cout << "Finding the best route...\n\n";
+        if (options.config.islandCount = 1) {
+            std::cout << "Finding the best route...\n\n";
+        }
 
         ExecutionResult execution = runSolver(algorithm, options.useParallel);
 
