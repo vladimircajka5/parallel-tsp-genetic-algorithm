@@ -65,7 +65,10 @@ private:
         std::discrete_distribution<int>& rankDistribution
     ) const;
 
-    std::vector<Individual> createInitialPopulation(std::mt19937& rng) const;
+    std::vector<Individual> createInitialPopulationSerial() const;
+    std::vector<Individual> createInitialPopulationParallel() const;
+
+    Individual createInitialIndividual(int individualIndex) const;
 
     void evaluatePopulation(std::vector<Individual>& population) const;
     void evaluatePopulationParallel(std::vector<Individual>& population) const;

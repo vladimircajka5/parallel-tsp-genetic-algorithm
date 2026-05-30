@@ -51,9 +51,7 @@ GAResult GeneticAlgorithm::runParallel() {
 }
 
 GAResult GeneticAlgorithm::run(bool useParallel) {
-    std::mt19937 rng(config.seed);
-
-    std::vector<Individual> population = createInitialPopulation(rng);
+    std::vector<Individual> population = useParallel ? createInitialPopulationParallel() : createInitialPopulationSerial();
 
     if (useParallel) {
         evaluatePopulationParallel(population);
@@ -228,15 +226,47 @@ Individual GeneticAlgorithm::createChild(
     return child;
 }
 
-std::vector<Individual> GeneticAlgorithm::createInitialPopulation(std::mt19937& rng) const {
-    std::vector<int> base(n);
-    std::iota(base.begin(), base.end(), 0);
+Individual GeneticAlgorithm::createInitialIndividual(int individualIndex) const {
+    std::vector<int> route(n);
+    std::iota(route.begin(), route.end(), 0);
 
+    std::seed_seq seedSequence{
+        config.seed,
+        static_cast<unsigned int>(individualIndex)
+    };
+
+    std::mt19937 rng(seedSequence);
+
+    std::shuffle(route.begin(), route.end(), rng);
+
+    Individual individual;
+    individual.route = std::move(route);
+
+    return individual;
+}
+
+std::vector<Individual> GeneticAlgorithm::createInitialPopulationSerial() const {
     std::vector<Individual> population(config.populationSize);
-    for (Individual& individual : population) {
-        individual.route = base;
-        std::shuffle(individual.route.begin(), individual.route.end(), rng);
+
+    for (int i = 0; i < config.populationSize; ++i) {
+        population[i] = createInitialIndividual(i);
     }
+
+    return population;
+}
+
+std::vector<Individual> GeneticAlgorithm::createInitialPopulationParallel() const {
+    std::vector<Individual> population(config.populationSize);
+
+    tbb::parallel_for(
+        tbb::blocked_range<int>(0, config.populationSize),
+        [&](const tbb::blocked_range<int>& range) {
+            for (int i = range.begin(); i != range.end(); ++i) {
+                population[i] = createInitialIndividual(i);
+            }
+        }
+    );
+
     return population;
 }
 
