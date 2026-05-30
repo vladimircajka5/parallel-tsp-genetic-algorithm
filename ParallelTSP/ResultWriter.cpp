@@ -134,6 +134,10 @@ void saveBenchmarkResults(
 
     std::ofstream output(filePath, std::ios::app);
 
+    int islandCount = options.config.islandCount;
+    int populationPerIsland = options.config.populationSize;
+    int totalPopulation = populationPerIsland * islandCount;
+
     double speedup = serial.elapsedSeconds / parallel.elapsedSeconds;
 
     double efficiency = 0.0;
@@ -141,26 +145,46 @@ void saveBenchmarkResults(
         efficiency = speedup / static_cast<double>(options.threadCount);
     }
 
+    std::string serialMode = islandCount > 1 ? "serial_baseline" : "serial";
+    std::string parallelMode = islandCount > 1 ? "island_model" : "parallel";
+
     if (shouldWriteHeader) {
         output
-            << "population,generations,patience,seed,threads,"
-            << "serial_used_generations,parallel_used_generations,"
-            << "serial_best_length,parallel_best_length,"
-            << "serial_elapsed_seconds,parallel_elapsed_seconds,"
-            << "speedup,efficiency\n";
+            << "population_per_island,total_population,generations,patience,seed,threads,"
+            << "islands,migration_interval,migrants,mode,used_generations,"
+            << "best_length,elapsed_seconds,speedup,efficiency\n";
     }
 
-    output << options.config.populationSize << ','
+    output << populationPerIsland << ','
+        << totalPopulation << ','
         << options.config.generations << ','
         << options.config.patience << ','
         << options.config.seed << ','
         << options.threadCount << ','
+        << islandCount << ','
+        << options.config.migrationInterval << ','
+        << options.config.migrantsPerIsland << ','
+        << serialMode << ','
         << serial.result.usedGenerations << ','
-        << parallel.result.usedGenerations << ','
         << std::fixed << std::setprecision(6)
         << serial.result.bestLength << ','
-        << parallel.result.bestLength << ','
         << serial.elapsedSeconds << ','
+        << "1.000000" << ','
+        << "1.000000" << '\n';
+
+    output << populationPerIsland << ','
+        << totalPopulation << ','
+        << options.config.generations << ','
+        << options.config.patience << ','
+        << options.config.seed << ','
+        << options.threadCount << ','
+        << islandCount << ','
+        << options.config.migrationInterval << ','
+        << options.config.migrantsPerIsland << ','
+        << parallelMode << ','
+        << parallel.result.usedGenerations << ','
+        << std::fixed << std::setprecision(6)
+        << parallel.result.bestLength << ','
         << parallel.elapsedSeconds << ','
         << speedup << ','
         << efficiency << '\n';

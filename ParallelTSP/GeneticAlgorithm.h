@@ -19,6 +19,10 @@ struct GAConfig {
 
     int patience = 50;
     unsigned int seed = 42;
+
+    int islandCount = 1;
+    int migrationInterval = 25;
+    int migrantsPerIsland = 5;
 };
 
 struct GAResult {
@@ -49,27 +53,30 @@ private:
         const std::vector<Individual>& population,
         int eliteCount,
         int generation,
-        const std::vector<double>& rankWeights
+        const std::vector<double>& rankWeights,
+        int islandIndex = 0
     ) const;
 
     std::vector<Individual> createNextPopulationParallel(
         const std::vector<Individual>& population,
         int eliteCount,
         int generation,
-        const std::vector<double>& rankWeights
+        const std::vector<double>& rankWeights,
+        int islandIndex = 0
     ) const;
 
     Individual createChild(
         const std::vector<Individual>& population,
         int generation,
         int childIndex,
-        std::discrete_distribution<int>& rankDistribution
+        std::discrete_distribution<int>& rankDistribution,
+        int islandIndex = 0
     ) const;
 
-    std::vector<Individual> createInitialPopulationSerial() const;
-    std::vector<Individual> createInitialPopulationParallel() const;
+    std::vector<Individual> createInitialPopulationSerial(int islandIndex = 0) const;
+    std::vector<Individual> createInitialPopulationParallel(int islandIndex = 0) const;
 
-    Individual createInitialIndividual(int individualIndex) const;
+    Individual createInitialIndividual(int individualIndex, int islandIndex = 0) const;
 
     void evaluatePopulation(std::vector<Individual>& population) const;
     void evaluatePopulationParallel(std::vector<Individual>& population) const;
@@ -101,4 +108,21 @@ private:
     bool isValidRoute(const std::vector<int>& route) const;
 
     void validateRoute(const std::vector<int>& route, const std::string& context) const;
+
+    GAResult runIslandModel();
+
+    void evolveIsland(
+        std::vector<Individual>& population,
+        int islandIndex,
+        int startGeneration,
+        int generationCount
+    ) const;
+
+    void migrateBestIndividuals(std::vector<std::vector<Individual>>& islands) const;
+
+    Individual findBestIndividual(const std::vector<std::vector<Individual>>& islands) const;
+
+    double calculateMeanLengthAcrossIslands(const std::vector<std::vector<Individual>>& islands) const;
+
+    void logIslandState(const std::vector<std::vector<Individual>>& islands, int generation, const std::string& stage) const;
 };

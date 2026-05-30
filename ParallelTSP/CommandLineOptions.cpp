@@ -20,6 +20,9 @@ void printUsage(const char* programName) {
         << "  --parallel             Run TBB parallel version\n"
         << "  --benchmark            Run both serial and parallel versions and save comparison\n"
         << "  --threads <int>        Maximum number of TBB threads (default: automatic)\n"
+        << "  --islands <int>       Number of islands for island model (default: 1)\n"
+        << "  --migration <int>     Migration interval in generations (default: 25)\n"
+        << "  --migrants <int>      Number of migrants per island (default: 5)\n"
         << "  --help                 Show this help\n";
 }
 
@@ -75,6 +78,15 @@ CommandLineOptions parseArguments(int argc, char** argv) {
         }
         else if (arg == "--threads") {
              options.threadCount = std::stoi(requireValue(arg));
+        }
+         else if (arg == "--islands") {
+             options.config.islandCount = std::stoi(requireValue(arg));
+        }
+         else if (arg == "--migration") {
+             options.config.migrationInterval = std::stoi(requireValue(arg));
+        }
+         else if (arg == "--migrants") {
+             options.config.migrantsPerIsland = std::stoi(requireValue(arg));
         }
         else {
             throw std::invalid_argument("Unknown argument: " + arg);

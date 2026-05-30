@@ -22,15 +22,46 @@ int main(int argc, char** argv) {
             );
         }
 
-        TspInstance instance(options.dataPath, options.useParallel || options.benchmark);
-        GeneticAlgorithm algorithm(instance, options.config);
+        TspInstance instance(
+            options.dataPath,
+            options.useParallel || options.benchmark
+        );
 
         if (options.benchmark) {
-            std::cout << "Running serial solver...\n";
-            ExecutionResult serialResult = runSolver(algorithm, false);
+            GAConfig serialConfig = options.config;
+            GAConfig parallelConfig = options.config;
 
-            std::cout << "Running parallel solver...\n";
-            ExecutionResult parallelResult = runSolver(algorithm, true);
+            if (options.config.islandCount > 1) {
+                serialConfig.populationSize =
+                    options.config.populationSize * options.config.islandCount;
+
+                serialConfig.islandCount = 1;
+                serialConfig.migrantsPerIsland = 0;
+
+                std::cout << "=== ISLAND MODEL BENCHMARK ===\n";
+                std::cout << "Running serial baseline solver...\n";
+                std::cout << "Serial baseline population: "
+                    << serialConfig.populationSize << '\n';
+
+                std::cout << "Running island model solver...\n";
+                std::cout << "Island count: " << parallelConfig.islandCount << '\n';
+                std::cout << "Population per island: "
+                    << parallelConfig.populationSize << '\n';
+                std::cout << "Total island population: "
+                    << parallelConfig.populationSize * parallelConfig.islandCount
+                    << "\n\n";
+            }
+            else {
+                std::cout << "=== STANDARD GA BENCHMARK ===\n";
+                std::cout << "Running serial solver...\n";
+                std::cout << "Running parallel solver...\n\n";
+            }
+
+            GeneticAlgorithm serialAlgorithm(instance, serialConfig);
+            GeneticAlgorithm parallelAlgorithm(instance, parallelConfig);
+
+            ExecutionResult serialResult = runSolver(serialAlgorithm, false);
+            ExecutionResult parallelResult = runSolver(parallelAlgorithm, true);
 
             printBenchmarkResult(serialResult, parallelResult);
             saveBenchmarkResults(options, serialResult, parallelResult);
@@ -42,6 +73,7 @@ int main(int argc, char** argv) {
 
         std::cout << "Finding the best route...\n\n";
 
+        GeneticAlgorithm algorithm(instance, options.config);
         ExecutionResult execution = runSolver(algorithm, options.useParallel);
 
         std::vector<int> routeIds = convertRouteToCityIds(
