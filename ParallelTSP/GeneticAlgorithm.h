@@ -19,6 +19,10 @@ struct GAConfig {
 
     int patience = 50;
     unsigned int seed = 42;
+
+    int islandCount = 1;
+    int migrationInterval = 25;
+    int migrantsPerIsland = 5;
 };
 
 struct GAResult {
