@@ -22,11 +22,6 @@ int main(int argc, char** argv) {
             );
         }
 
-        TspInstance instance(
-            options.dataPath,
-            options.useParallel || options.benchmark
-        );
-
         if (options.benchmark) {
             GAConfig serialConfig = options.config;
             GAConfig parallelConfig = options.config;
@@ -57,11 +52,17 @@ int main(int argc, char** argv) {
                 std::cout << "Running parallel solver...\n\n";
             }
 
-            GeneticAlgorithm serialAlgorithm(instance, serialConfig);
-            GeneticAlgorithm parallelAlgorithm(instance, parallelConfig);
+            ExecutionResult serialResult = runSolverWithSetup(
+                options.dataPath,
+                serialConfig,
+                false
+            );
 
-            ExecutionResult serialResult = runSolver(serialAlgorithm, false);
-            ExecutionResult parallelResult = runSolver(parallelAlgorithm, true);
+            ExecutionResult parallelResult = runSolverWithSetup(
+                options.dataPath,
+                parallelConfig,
+                true
+            );
 
             printBenchmarkResult(serialResult, parallelResult);
             saveBenchmarkResults(options, serialResult, parallelResult);
@@ -73,6 +74,7 @@ int main(int argc, char** argv) {
 
         std::cout << "Finding the best route...\n\n";
 
+        TspInstance instance(options.dataPath, options.useParallel);
         GeneticAlgorithm algorithm(instance, options.config);
         ExecutionResult execution = runSolver(algorithm, options.useParallel);
 

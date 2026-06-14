@@ -474,13 +474,18 @@ GAResult GeneticAlgorithm::runIslandModel() {
 
     std::vector<std::vector<Individual>> islands(islandCount);
 
+    // The island model has two levels of parallel work:
+    // 1) different islands are initialized/evolved independently;
+    // 2) each island reuses the same parallel population operations as the
+    //    normal parallel GA. TBB schedules both levels under the global thread
+    //    limit configured in main.cpp.
     tbb::parallel_for(
         tbb::blocked_range<int>(0, islandCount),
         [&](const tbb::blocked_range<int>& range) {
             for (int island = range.begin(); island != range.end(); ++island) {
-                islands[island] = createInitialPopulationSerial(island);
-                evaluatePopulation(islands[island]);
-                sortPopulation(islands[island]);
+                islands[island] = createInitialPopulationParallel(island);
+                evaluatePopulationParallel(islands[island]);
+                sortPopulationParallel(islands[island]);
             }
         }
     );
@@ -497,6 +502,9 @@ GAResult GeneticAlgorithm::runIslandModel() {
         int remainingGenerations = config.generations - generation + 1;
         int generationsThisCycle = std::min(migrationInterval, remainingGenerations);
 
+        // Islands evolve independently between migrations. Inside each island,
+        // evolveIsland() also uses parallel child creation, evaluation, and
+        // sorting, so this keeps the full island cycle parallelized.
         tbb::parallel_for(
             tbb::blocked_range<int>(0, islandCount),
             [&](const tbb::blocked_range<int>& range) {
@@ -568,7 +576,7 @@ void GeneticAlgorithm::evolveIsland(
             static_cast<int>(population.size())
         );
 
-        population = createNextPopulationSerial(
+        population = createNextPopulationParallel(
             population,
             eliteCount,
             generation,
@@ -576,8 +584,8 @@ void GeneticAlgorithm::evolveIsland(
             islandIndex
         );
 
-        evaluatePopulation(population);
-        sortPopulation(population);
+        evaluatePopulationParallel(population);
+        sortPopulationParallel(population);
     }
 }
 
@@ -615,7 +623,7 @@ void GeneticAlgorithm::migrateBestIndividuals(
     }
 
     for (auto& islandPopulation : islands) {
-        sortPopulation(islandPopulation);
+        sortPopulationParallel(islandPopulation);
     }
 }
 
@@ -662,7 +670,7 @@ void GeneticAlgorithm::logIslandState(
     for (size_t island = 0; island < islands.size(); ++island) {
         const auto& population = islands[island];
 
-        double mean = calculateMeanLength(population);
+        double mean = calculateMeanLengthParallel(population);
 
         std::cout << "  Island " << island
             << " | best: " << population.front().length

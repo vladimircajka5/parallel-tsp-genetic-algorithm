@@ -5,8 +5,19 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <tbb/info.h>
 
 namespace fs = std::filesystem;
+
+namespace {
+    int effectiveThreadCount(const CommandLineOptions& options) {
+        if (options.threadCount > 0) {
+            return options.threadCount;
+        }
+
+        return std::max(1, tbb::info::default_concurrency());
+    }
+}
 
 std::vector<int> convertRouteToCityIds(
     const std::vector<int>& route,
@@ -140,10 +151,8 @@ void saveBenchmarkResults(
 
     double speedup = serial.elapsedSeconds / parallel.elapsedSeconds;
 
-    double efficiency = 0.0;
-    if (options.threadCount > 0) {
-        efficiency = speedup / static_cast<double>(options.threadCount);
-    }
+    int measuredThreadCount = effectiveThreadCount(options);
+    double efficiency = speedup / static_cast<double>(measuredThreadCount);
 
     std::string serialMode = islandCount > 1 ? "serial_baseline" : "serial";
     std::string parallelMode = islandCount > 1 ? "island_model" : "parallel";
@@ -160,7 +169,7 @@ void saveBenchmarkResults(
         << options.config.generations << ','
         << options.config.patience << ','
         << options.config.seed << ','
-        << options.threadCount << ','
+        << measuredThreadCount << ','
         << islandCount << ','
         << options.config.migrationInterval << ','
         << options.config.migrantsPerIsland << ','
@@ -177,7 +186,7 @@ void saveBenchmarkResults(
         << options.config.generations << ','
         << options.config.patience << ','
         << options.config.seed << ','
-        << options.threadCount << ','
+        << measuredThreadCount << ','
         << islandCount << ','
         << options.config.migrationInterval << ','
         << options.config.migrantsPerIsland << ','
