@@ -161,6 +161,10 @@
     <Text Include="data_tsp.txt" />
     <Text Include="results\best_route.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="results\benchmark.csv" />
+    <None Include="results\history.csv" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

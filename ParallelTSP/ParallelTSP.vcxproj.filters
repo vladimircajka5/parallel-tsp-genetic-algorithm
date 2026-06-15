@@ -72,6 +72,9 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <None Include="results\benchmark.csv">
+      <Filter>Resource Files\Results</Filter>
+    </None>
     <None Include="results\history.csv">
       <Filter>Resource Files\Results</Filter>
     </None>

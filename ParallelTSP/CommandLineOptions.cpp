@@ -37,7 +37,7 @@ CommandLineOptions parseArguments(int argc, char** argv) {
                 throw std::invalid_argument("Missing value for argument: " + name);
             }
             return argv[++i];
-            };
+        };
 
         if (arg == "--help") {
             printUsage(argv[0]);
@@ -79,13 +79,13 @@ CommandLineOptions parseArguments(int argc, char** argv) {
         else if (arg == "--threads") {
              options.threadCount = std::stoi(requireValue(arg));
         }
-         else if (arg == "--islands") {
+        else if (arg == "--islands") {
              options.config.islandCount = std::stoi(requireValue(arg));
         }
-         else if (arg == "--migration") {
+        else if (arg == "--migration") {
              options.config.migrationInterval = std::stoi(requireValue(arg));
         }
-         else if (arg == "--migrants") {
+        else if (arg == "--migrants") {
              options.config.migrantsPerIsland = std::stoi(requireValue(arg));
         }
         else {

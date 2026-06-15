@@ -474,11 +474,6 @@ GAResult GeneticAlgorithm::runIslandModel() {
 
     std::vector<std::vector<Individual>> islands(islandCount);
 
-    // The island model has two levels of parallel work:
-    // 1) different islands are initialized/evolved independently;
-    // 2) each island reuses the same parallel population operations as the
-    //    normal parallel GA. TBB schedules both levels under the global thread
-    //    limit configured in main.cpp.
     tbb::parallel_for(
         tbb::blocked_range<int>(0, islandCount),
         [&](const tbb::blocked_range<int>& range) {
@@ -502,9 +497,6 @@ GAResult GeneticAlgorithm::runIslandModel() {
         int remainingGenerations = config.generations - generation + 1;
         int generationsThisCycle = std::min(migrationInterval, remainingGenerations);
 
-        // Islands evolve independently between migrations. Inside each island,
-        // evolveIsland() also uses parallel child creation, evaluation, and
-        // sorting, so this keeps the full island cycle parallelized.
         tbb::parallel_for(
             tbb::blocked_range<int>(0, islandCount),
             [&](const tbb::blocked_range<int>& range) {
